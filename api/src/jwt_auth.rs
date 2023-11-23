@@ -10,18 +10,11 @@ use axum::{
 
 use axum_extra::extract::cookie::CookieJar;
 use jsonwebtoken::{decode, DecodingKey, Validation};
-use serde::Serialize;
 
 use crate::{
     model::{TokenClaims, User},
-    AppState,
+    AppState, response::ErrorResponse,
 };
-
-#[derive(Debug, Serialize)]
-pub struct ErrorResponse {
-    pub status: &'static str,
-    pub message: String,
-}
 
 pub async fn auth<B>(
     cookie_jar: CookieJar,
@@ -67,14 +60,6 @@ pub async fn auth<B>(
     })?
     .claims;
 
-    /* let user_id = uuid::Uuid::parse_str(&claims.sub).map_err(|_| {
-        let json_error = ErrorResponse {
-            status: "fail",
-            message: "Invalid token".to_string(),
-        };
-        (StatusCode::UNAUTHORIZED, Json(json_error))
-    })?; */
-
     let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", claims.sub.parse::<i64>().unwrap())
         .fetch_optional(&data.db)
         .await
@@ -86,7 +71,7 @@ pub async fn auth<B>(
             (StatusCode::INTERNAL_SERVER_ERROR, Json(json_error))
         })?;
 
-    let user = user.ok_or_else(|| {
+    let user_response = user.ok_or_else(|| {
         let json_error = ErrorResponse {
             status: "fail",
             message: "The user belonging to this token no longer exists".to_string(),
@@ -94,6 +79,31 @@ pub async fn auth<B>(
         (StatusCode::UNAUTHORIZED, Json(json_error))
     })?;
 
-    req.extensions_mut().insert(user);
+    println!("{:?}", user_response);
+
+    req.extensions_mut().insert(user_response as User);
+    Ok(next.run(req).await)
+}
+
+pub async fn reject_if_not_admin<B>(
+    req: Request<B>,
+    next: Next<B>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
+    let user = req.extensions().get::<User>().ok_or_else(|| {
+        let json_error = ErrorResponse {
+            status: "fail",
+            message: "The user belonging to this token no longer exists".to_string(),
+        };
+        (StatusCode::UNAUTHORIZED, Json(json_error))
+    })?;
+
+    if user.role != "admin" {
+        let json_error = ErrorResponse {
+            status: "fail",
+            message: "Only admin level users are allowed to use this endpoint".to_string(),
+        };
+        return Err((StatusCode::UNAUTHORIZED, Json(json_error)));
+    }
+
     Ok(next.run(req).await)
 }

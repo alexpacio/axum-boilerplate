@@ -8,6 +8,8 @@ pub struct User {
     pub name: String,
     pub email: String,
     pub password: String,
+    #[serde(rename = "customerName")]
+    pub customer_name: Option<String>,
     pub role: String,
     pub photo: String,
     pub verified: bool,
@@ -29,6 +31,9 @@ pub struct RegisterUserSchema {
     pub name: String,
     pub email: String,
     pub password: String,
+    pub role: String,
+    #[serde(rename = "customerName")]
+    pub customer_name: String
 }
 
 #[derive(Debug, Deserialize)]

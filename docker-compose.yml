@@ -1,20 +1,37 @@
 version: "3"
 services:
+  api:
+    image: mazzocchi-api-backend:latest
+    build: 
+      context: .
+      dockerfile: containers/api/Dockerfile
+    container_name: api
+    ports:
+      - "8800:8800"
+    volumes:
+      - .env:/app/.env
+      - ../mazzocchi-info/dist/mazzocchi-info:/app/html
+    working_dir: /app
+    depends_on:
+      - postgres
+    restart: always
   postgres:
     image: postgres:latest
     container_name: postgres
     ports:
       - "6500:5432"
     volumes:
-      - progresDB:/var/lib/postgresql/data
+      - postgres_db:/var/lib/postgresql/data
     env_file:
       - ./.env
-  pgAdmin:
+    restart: always
+  pg_admin:
     image: dpage/pgadmin4
-    container_name: pgAdmin
+    container_name: pg_admin
     env_file:
       - ./.env
     ports:
       - "5050:80"
+    restart: always
 volumes:
-  progresDB:
+  postgres_db:

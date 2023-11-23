@@ -7,6 +7,7 @@ pub struct FilteredUser {
     pub id: i64,
     pub name: String,
     pub email: String,
+    pub customer_name: Option<String>,
     pub role: String,
     pub photo: String,
     pub verified: bool,
@@ -23,4 +24,10 @@ pub struct UserData {
 pub struct UserResponse {
     pub status: String,
     pub data: UserData,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ErrorResponse {
+    pub status: &'static str,
+    pub message: String,
 }

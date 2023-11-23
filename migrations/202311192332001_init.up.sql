@@ -10,6 +10,7 @@ CREATE TABLE
         photo VARCHAR NOT NULL DEFAULT 'default.png',
         verified BOOLEAN NOT NULL DEFAULT FALSE,
         password VARCHAR(100) NOT NULL,
+        customer_name VARCHAR(100),
         role VARCHAR(50) NOT NULL DEFAULT 'user',
         created_at TIMESTAMP
         WITH
@@ -20,3 +21,7 @@ CREATE TABLE
     );
 
 CREATE INDEX users_email_idx ON users (email);
+
+INSERT INTO users(name, email, verified, password, role) VALUES('Simone Mazzocchi', 'simone@mazzocchinet.com', TRUE, '$argon2id$v=19$m=19456,t=2,p=1$XMPqCYO4fpsEVYYPPMmx6w$koXQpXWnGndo+sMLRf5pBYYzX6Woc9FKhxRdLHxeUWw', 'admin');
+
+INSERT INTO users(name, email, verified, password, customer_name, role) VALUES('NCM TEST', 'ncm@mazzocchinet.com', TRUE, '$argon2id$v=19$m=19456,t=2,p=1$3Hs+AureudAukAyXExkvEw$6XYWz0T+IfoW0+OxXZykHSS3LDXLRiPoBF4FrF9pVEQ', 'N.C.M. S.P.A.' ,'user');
